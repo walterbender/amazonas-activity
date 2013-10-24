@@ -27,7 +27,7 @@ from plugins.plugin import Plugin
 from TurtleArt.tapalette import (make_palette, define_logo_function,
                                  block_names, block_primitives, special_names,
                                  content_blocks, palette_name_to_index,
-                                 palette_names)
+                                 palette_names, palette_i18n_names)
 from TurtleArt.talogo import (primitive_dictionary, logoerror,
                               media_blocks_dictionary)
 from TurtleArt.taconstants import (DEFAULT_SCALE, ICON_SIZE, CONSTANTS,
@@ -60,8 +60,8 @@ class Turtle_blocks_extras(Plugin):
     """ a class for defining the extra palettes that distinguish Turtle Blocks
     from Turtle Art """
 
-    def __init__(self, parent):
-        self.tw = parent
+    def __init__(self, turtle_window):
+        self.tw = turtle_window
 
     def setup(self):
         SKIN_PATHS.append('plugins/turtle_blocks_extras/images')
@@ -123,13 +123,14 @@ boolean operators from Numbers palette'))
         self.tw.lc.def_prim('clamp', 1, primitive_dictionary['clamp'], True)
 
     def _media_palette(self):
-
-        palette = make_palette('flow',
-                               colors=["#FFC000", "#A08000"],
-                               help_string=_('Palette of flow operators'))
+        debug_output('creating %s palette' % _('media'),
+                     self.tw.running_sugar)
+        palette = make_palette('media',
+                               colors=["#A0FF00", "#80A000"],
+                               help_string=_('Palette of media objects'),
+                               position=7)
 
         palette.add_block('journal',
-                          hidden=True,
                           style='box-style-media',
                           label=' ',
                           default='None',
@@ -181,7 +182,6 @@ boolean operators from Numbers palette'))
         MEDIA_SHAPES.append('descriptionon')
 
         palette.add_block('string',
-                          hidden=True,
                           style='box-style',
                           label=_('text'),
                           default=_('text'),
@@ -190,7 +190,6 @@ boolean operators from Numbers palette'))
 
         primitive_dictionary['show'] = self._prim_show
         palette.add_block('show',
-                          hidden=True,
                           style='basic-style-1arg',
                           label=_('show'),
                           default=_('text'),
@@ -216,25 +215,8 @@ Journal'))
                             lambda self, x:
                             primitive_dictionary['show'](x, False))
 
-        # deprecated
-        primitive_dictionary['write'] = self._prim_write
-        palette.add_block('write',
-                          hidden=True,
-                          colors=["#A0FF00", "#80A000"],
-                          style='basic-style-1arg',
-                          label=_('show'),
-                          default=[_('text'), 32],
-                          prim_name='write',
-                          logo_command='label',
-                          help_string=_('draws text or show media from the \
-Journal'))
-        self.tw.lc.def_prim('write', 2,
-                            lambda self, x, y:
-                            primitive_dictionary['write'](x, y))
-
         primitive_dictionary['setscale'] = self._prim_setscale
         palette.add_block('setscale',
-                          hidden=True,
                           style='basic-style-1arg',
                           label=_('set scale'),
                           prim_name='setscale',
@@ -270,7 +252,6 @@ in the Sugar Journal'))
                             lambda self, x: primitive_dictionary['savesvg'](x))
 
         palette.add_block('scale',
-                          hidden=True,
                           style='box-style',
                           label=_('scale'),
                           prim_name='scale',
@@ -314,7 +295,6 @@ complete'))
 
         primitive_dictionary['speak'] = self._prim_speak
         palette.add_block('speak',
-                          hidden=True,
                           style='basic-style-1arg',
                           label=_('speak'),
                           prim_name='speak',
@@ -339,11 +319,18 @@ amplitude, and duration (in seconds)'))
                             primitive_dictionary['sinewave'](x, y, z))
 
     def _sensor_palette(self):
-
-        palette = make_palette('flow',
-                               colors=["#FFC000", "#A08000"],
-                               help_string=_('Palette of flow operators'))
-
+        debug_output('creating %s palette' % _('sensor'),
+                     self.tw.running_sugar)
+        palette = make_palette('extras',
+                               colors=["#FF0000", "#A00000"],
+                               help_string=_('Palette of extra options'),
+                               position=8)
+        '''
+        palette = make_palette('sensor',
+                               colors=["#FF6060", "#A06060"],
+                               help_string=_('Palette of sensor blocks'),
+                               position=6)
+        '''
         primitive_dictionary['mousebutton'] = self._prim_mouse_button
         palette.add_block('mousebutton',
                           hidden=True,
@@ -463,6 +450,7 @@ to the stack'))
 
         primitive_dictionary['time'] = self._prim_time
         palette.add_block('time',
+                          hidden=True,
                           style='box-style',
                           label=_('time'),
                           prim_name='time',
@@ -473,10 +461,12 @@ program started'))
                             lambda self: primitive_dictionary['time']())
 
     def _extras_palette(self):
-
+        debug_output('creating %s palette' % _('extras'),
+                     self.tw.running_sugar)
         palette = make_palette('extras',
                                colors=["#FF0000", "#A00000"],
-                               help_string=_('Palette of extra options'))
+                               help_string=_('Palette of extra options'),
+                               position=8)
 
         primitive_dictionary['push'] = self._prim_push
         palette.add_block('push',
@@ -702,6 +692,7 @@ module found in the Journal'))
         MEDIA_SHAPES.append('pythonon')
 
         palette.add_block('cartesian',
+                          hidden=True,
                           style='basic-style-extended-vertical',
                           label=_('Cartesian'),
                           prim_name='cartesian',
@@ -710,6 +701,7 @@ module found in the Journal'))
                             lambda self: self.tw.set_cartesian(True))
 
         palette.add_block('polar',
+                          hidden=True,
                           style='basic-style-extended-vertical',
                           label=_('polar'),
                           prim_name='polar',
@@ -721,13 +713,35 @@ module found in the Journal'))
                           hidden=True,
                           style='basic-style-1arg',
                           label=_('turtle'),
-                          prim_name='turtle',
+                          prim_name='addturtle',
                           default=1,
                           string_or_number=True,
                           help_string=_('chooses which turtle to command'))
-        self.tw.lc.def_prim('turtle', 1,
+        self.tw.lc.def_prim('addturtle', 1,
                             lambda self, x:
-                            self.tw.canvas.set_turtle(x))
+                            self.tw.turtles.set_turtle(x))
+
+        primitive_dictionary['turtlex'] = self._prim_turtle_x
+        palette.add_block('turtlex',
+                          hidden=True,
+                          style='number-style-1arg',
+                          label=_('turtle x'),
+                          prim_name='turtlex',
+                          default=['Yertle'],
+                          help_string=_('Returns x coordinate of turtle'))
+        self.tw.lc.def_prim('turtlex', 1,
+                            lambda self, t: primitive_dictionary['turtlex'](t))
+
+        primitive_dictionary['turtley'] = self._prim_turtle_y
+        palette.add_block('turtley',
+                          hidden=True,
+                          style='number-style-1arg',
+                          label=_('turtle y'),
+                          prim_name='turtley',
+                          default=['Yertle'],
+                          help_string=_('Returns y coordinate of turtle'))
+        self.tw.lc.def_prim('turtley', 1,
+                            lambda self, t: primitive_dictionary['turtley'](t))
 
         primitive_dictionary['activeturtle'] = self._prim_active_turtle
         palette.add_block('activeturtle',
@@ -741,6 +755,17 @@ module found in the Journal'))
         self.tw.lc.def_prim('activeturtle', 0,
                             lambda self:
                             primitive_dictionary['activeturtle']())
+
+        primitive_dictionary['turtleh'] = self._prim_turtle_h
+        palette.add_block('turtleh',
+                          hidden=True,
+                          style='number-style-1arg',
+                          label=_('turtle heading'),
+                          prim_name='turtleh',
+                          default=['Yertle'],
+                          help_string=_('Returns heading of turtle'))
+        self.tw.lc.def_prim('turtleh', 1,
+                            lambda self, t: primitive_dictionary['turtleh'](t))
 
         primitive_dictionary['skin'] = self._prim_reskin
         palette.add_block('skin',
@@ -782,8 +807,8 @@ module found in the Journal'))
                             primitive_dictionary['loadblock'](x))
 
         palette.add_block('loadblock2arg',
-                          hidden=True,
                           style='basic-style-var-arg',
+                          hidden=True,
                           label=_('load'),
                           prim_name='loadblock2',
                           string_or_number=True,
@@ -794,8 +819,8 @@ module found in the Journal'))
                             primitive_dictionary['loadblock']([x, y]))
 
         palette.add_block('loadblock3arg',
-                          hidden=True,
                           style='basic-style-var-arg',
+                          hidden=True,
                           label=_('load'),
                           string_or_number=True,
                           prim_name='loadblock3',
@@ -810,7 +835,7 @@ module found in the Journal'))
                           hidden=True,
                           style='basic-style-1arg',
                           string_or_number=True,
-                          label=_('palette'),
+                          label=_('select palette'),
                           prim_name='loadpalette',
                           default=_('turtle'),
                           help_string=_('selects a palette'))
@@ -819,10 +844,19 @@ module found in the Journal'))
                             primitive_dictionary['loadpalette'](x))
 
     def _portfolio_palette(self):
-
+        debug_output('creating %s palette' % _('portfolio'),
+                     self.tw.running_sugar)
         palette = make_palette('extras',
                                colors=["#FF0000", "#A00000"],
-                               help_string=_('Palette of extra options'))
+                               help_string=_('Palette of extra options'),
+                               position=8)
+        '''
+        palette = make_palette('portfolio',
+                               colors=["#0606FF", "#0606A0"],
+                               help_string=_('Palette of presentation \
+templates'),
+                               position=9)
+        '''
 
         primitive_dictionary['hideblocks'] = self._prim_hideblocks
         palette.add_block('hideblocks',
@@ -917,7 +951,6 @@ Journal objects'))
 
         # Display-dependent constants
         palette.add_block('leftpos',
-                          hidden=True,
                           style='box-style',
                           label=_('left'),
                           prim_name='lpos',
@@ -926,7 +959,6 @@ Journal objects'))
         self.tw.lc.def_prim('lpos', 0, lambda self: CONSTANTS['leftpos'])
 
         palette.add_block('bottompos',
-                          hidden=True,
                           style='box-style',
                           label=_('bottom'),
                           prim_name='bpos',
@@ -935,7 +967,6 @@ Journal objects'))
         self.tw.lc.def_prim('bpos', 0, lambda self: CONSTANTS['bottompos'])
 
         palette.add_block('width',
-                          hidden=True,
                           style='box-style',
                           label=_('width'),
                           prim_name='hres',
@@ -944,7 +975,6 @@ Journal objects'))
         self.tw.lc.def_prim('hres', 0, lambda self: CONSTANTS['width'])
 
         palette.add_block('rightpos',
-                          hidden=True,
                           style='box-style',
                           label=_('right'),
                           prim_name='rpos',
@@ -953,7 +983,6 @@ Journal objects'))
         self.tw.lc.def_prim('rpos', 0, lambda self: CONSTANTS['rightpos'])
 
         palette.add_block('toppos',
-                          hidden=True,
                           style='box-style',
                           label=_('top'),
                           prim_name='tpos',
@@ -962,7 +991,6 @@ Journal objects'))
         self.tw.lc.def_prim('tpos', 0, lambda self: CONSTANTS['toppos'])
 
         palette.add_block('height',
-                          hidden=True,
                           style='box-style',
                           label=_('height'),
                           prim_name='vres',
@@ -1024,118 +1052,25 @@ Journal objects'))
                           logo_command='bottomy')
         self.tw.lc.def_prim('bottomy', 0, lambda self: CONSTANTS['bottomy'])
 
-        # deprecated blocks
-
-        primitive_dictionary['t1x1'] = self._prim_t1x1
-        palette.add_block('template1x1',
-                          hidden=True,
-                          colors=["#0606FF", "#0606A0"],
-                          style='portfolio-style-1x1',
-                          label=' ',
-                          prim_name='t1x1',
-                          default=[_('Title'), 'None'],
-                          special_name=_('presentation 1x1'),
-                          string_or_number=True,
-                          help_string=_('presentation template: select \
-Journal object (with description)'))
-        self.tw.lc.def_prim('t1x1', 2,
-                            lambda self, a, b:
-                            primitive_dictionary['t1x1'](a, b))
-
-        primitive_dictionary['t1x1a'] = self._prim_t1x1a
-        palette.add_block('template1x1a',
-                          hidden=True,
-                          colors=["#0606FF", "#0606A0"],
-                          style='portfolio-style-1x1',
-                          label=' ',
-                          prim_name='t1x1a',
-                          default=[_('Title'), 'None'],
-                          special_name=_('presentation 1x1'),
-                          string_or_number=True,
-                          help_string=_('presentation template: select \
-Journal object (no description)'))
-        self.tw.lc.def_prim('t1x1a', 2,
-                            lambda self, a, b:
-                            primitive_dictionary['t1x1a'](a, b))
-
-        primitive_dictionary['2x1'] = self._prim_t2x1
-        palette.add_block('template2x1',
-                          hidden=True,
-                          colors=["#0606FF", "#0606A0"],
-                          style='portfolio-style-2x1',
-                          label=' ',
-                          prim_name='t2x1',
-                          default=[_('Title'), 'None', 'None'],
-                          special_name=_('presentation 2x1'),
-                          string_or_number=True,
-                          help_string=_("presentation template: select two \
-Journal objects"))
-        self.tw.lc.def_prim('t2x1', 3,
-                            lambda self, a, b, c:
-                            primitive_dictionary['t2x1'](a, b, c))
-
-        primitive_dictionary['1x2'] = self._prim_t1x2
-        palette.add_block('template1x2',
-                          hidden=True,
-                          colors=["#0606FF", "#0606A0"],
-                          style='portfolio-style-1x2',
-                          label=' ',
-                          prim_name='t1x2',
-                          default=[_('Title'), 'None', 'None'],
-                          special_name=_('presentation 1x2'),
-                          string_or_number=True,
-                          help_string=_("presentation template: select two \
-Journal objects"))
-        self.tw.lc.def_prim('t1x2', 3,
-                            lambda self, a, b, c:
-                            primitive_dictionary['t1x2'](a, b, c))
-
-        primitive_dictionary['t2x2'] = self._prim_t2x2
-        palette.add_block('template2x2',
-                          hidden=True,
-                          colors=["#0606FF", "#0606A0"],
-                          style='portfolio-style-2x2',
-                          label=' ',
-                          prim_name='t2x2',
-                          default=[_('Title'), 'None', 'None', 'None', 'None'],
-                          special_name=_('presentation 2x2'),
-                          string_or_number=True,
-                          help_string=_("presentation template: select four \
-Journal objects"))
-        self.tw.lc.def_prim('t2x2', 5,
-                            lambda self, a, b, c, d, e:
-                            primitive_dictionary['t2x2'](a, b, c, d, e))
-
-        palette.add_block('templatelist',
-                          hidden=True,
-                          colors=["#0606FF", "#0606A0"],
-                          style='bullet-style',
-                          label=' ',
-                          prim_name='bullet',
-                          default=[_('Title'), '∙ '],
-                          special_name=_('presentation bulleted list'),
-                          string_or_number=True,
-                          help_string=_('presentation template: list of \
-bullets'))
-        self.tw.lc.def_prim('bullet', 1, self._prim_list, True)
-
     def _myblocks_palette(self):
         ''' User-defined macros are saved as a json-encoded file;
         these get loaded into a palette on startup '''
 
-        if os.path.exists(self.tw.macros_path):
+        if hasattr(self.tw, 'macros_path') and \
+                os.path.exists(self.tw.macros_path):
             files = glob.glob(os.path.join(self.tw.macros_path, '*.tb'))
-            print 'creating macros palette'
             if len(files) > 0:
+                debug_output('creating %s palette' % _('my blocks'),
+                             self.tw.running_sugar)
                 palette = make_palette(
-                    'myblocks',
+                    'my blocks',
                     colors=["#FFFF00", "#A0A000"],
                     help_string=_('Palette of user-defined operators'))
 
             for tafile in files:
                 data = data_from_file(tafile)
                 name = os.path.basename(tafile)[:-3]
-                print 'loading macro %s' % (name)
+                # print 'loading macro %s' % (name)
                 MACROS['user-defined-' + name] = hat_on_top(listify(data))
                 palette.add_block('user-defined-' + name,
                                   style='basic-style-extended-vertical',
@@ -1299,13 +1234,13 @@ bullets'))
 
     def _prim_readpixel(self):
         """ Read r, g, b, a from the canvas and push b, g, r to the stack """
-        r, g, b, a = self.tw.canvas.get_pixel()
+        r, g, b, a = self.tw.turtles.get_active_turtle().get_pixel()
         self.tw.lc.heap.append(b)
         self.tw.lc.heap.append(g)
         self.tw.lc.heap.append(r)
 
     def _prim_active_turtle(self):
-        return(self.tw.active_turtle.name)
+        return(self.tw.turtles.get_active_turtle().get_name())
 
     def _prim_reskin(self, media):
         """ Reskin the turtle with an image from a file """
@@ -1337,13 +1272,13 @@ bullets'))
             debug_output("Couldn't open skin %s" % (self.tw.lc.filepath),
                          self.tw.running_sugar)
         if pixbuf is not None:
-            self.tw.active_turtle.set_shapes([pixbuf])
-            pen_state = self.tw.active_turtle.get_pen_state()
+            self.tw.turtles.get_active_turtle().set_shapes([pixbuf])
+            pen_state = self.tw.turtles.get_active_turtle().get_pen_state()
             if pen_state:
-                self.tw.canvas.setpen(False)
-            self.tw.canvas.forward(0)
+                self.tw.turtles.get_active_turtle().set_pen_state(False)
+            self.tw.turtles.get_active_turtle().forward(0)
             if pen_state:
-                self.tw.canvas.setpen(True)
+                self.tw.turtles.get_active_turtle().set_pen_state(True)
 
         if self.tw.sharing():
             if self.tw.running_sugar:
@@ -1369,7 +1304,6 @@ bullets'))
 
     def _prim_save_svg(self, name):
         """ Save SVG to file """
-        self.tw.canvas.svg_close()
         self.tw.save_as_image(name, svg=True)
 
     def _prim_speak(self, text):
@@ -1483,7 +1417,7 @@ bullets'))
     def _prim_see(self):
         """ Read r, g, b from the canvas and return a corresponding palette
         color """
-        r, g, b, a = self.tw.canvas.get_pixel()
+        r, g, b, a = self.tw.turtles.get_active_turtle().get_pixel()
         color_index = self.tw.canvas.get_color_index(r, g, b)
         if self.tw.lc.update_values:
             self.tw.lc.update_label_value('see', color_index)
@@ -1553,7 +1487,7 @@ bullets'))
                 x, y = self.tw.lc.x2tx(), self.tw.lc.y2ty()
                 if center:
                     y -= self.tw.canvas.textsize
-                self.tw.canvas.draw_text(string, x, y,
+                self.tw.turtles.get_active_turtle().draw_text(string, x, y,
                                          int(self.tw.canvas.textsize *
                                              self.tw.lc.scale / 100.),
                                          self.tw.canvas.width - x)
@@ -1562,17 +1496,19 @@ bullets'))
             x, y = self.tw.lc.x2tx(), self.tw.lc.y2ty()
             if center:
                 y -= self.tw.canvas.textsize
-            self.tw.canvas.draw_text(string, x, y,
+            self.tw.turtles.get_active_turtle().draw_text(string, x, y,
                                      int(self.tw.canvas.textsize *
                                          self.tw.lc.scale / 100.),
                                      self.tw.canvas.width - x)
 
     def _prim_showlist(self, sarray):
         """ Display list of media objects """
-        x = self.tw.canvas.xcor / self.tw.coord_scale
-        y = self.tw.canvas.ycor / self.tw.coord_scale
+        x = (self.tw.turtles.get_active_turtle().get_xy()[0] /
+             self.tw.coord_scale)
+        y = (self.tw.turtles.get_active_turtle().get_xy()[1] /
+             self.tw.coord_scale)
         for s in sarray:
-            self.tw.canvas.setxy(x, y, pendown=False)
+            self.tw.turtles.get_active_turtle().set_xy(x, y, pendown=False)
             self._prim_show(s)
             y -= int(self.tw.canvas.textsize * self.tw.lead)
 
@@ -1618,6 +1554,18 @@ bullets'))
             self.tw.lc.stop_logo()
             raise logoerror("#notanumber")
 
+    def _prim_turtle_x(self, t):
+        """ Return x coordinate of turtle t """
+        return self.tw.turtles.get_turtle_x(t)
+
+    def _prim_turtle_y(self, t):
+        """ Return y coordinate of turtle t """
+        return self.tw.turtles.get_turtle_y(t)
+
+    def _prim_turtle_h(self, t):
+        """ Return heading of turtle t """
+        return self.tw.turtles.get_turtle_heading(t)
+
     def _prim_clamp(self, blklist):
         """ Run clamp blklist """
         self.tw.lc.icall(self.tw.lc.evline, blklist[:])
@@ -1631,14 +1579,14 @@ bullets'))
         # Place the block at the active turtle (x, y) and move the turtle
         # into position to place the next block in the stack.
         # TODO: Add expandable argument
-        x, y = self.tw.active_turtle.get_xy()
+        pos = self.tw.turtles.get_active_turtle().get_xy()
         if isinstance(blkname, list):
             name = blkname[0]
             if len(blkname) > 1:
                 value = blkname[1:]
-                dy = int(self._find_block(name, x, y, value))
+                dy = int(self._find_block(name, pos[0], pos[1], value))
             else:
-                dy = int(self._find_block(name, x, y))
+                dy = int(self._find_block(name, pos[0], pos[1]))
         else:
             name = blkname
             if name == 'delete':
@@ -1648,11 +1596,12 @@ bullets'))
                         blk.spr.hide()
                 dy = 0
             else:
-                dy = int(self._find_block(name, x, y))
+                dy = int(self._find_block(name, pos[0], pos[1]))
 
         # Reposition turtle to end of flow
-        self.tw.canvas.ycor -= dy
-        self.tw.canvas.move_turtle()
+        pos = self.tw.turtles.get_active_turtle().get_xy()
+        pos[1] -= dy
+        self.tw.turtles.get_active_turtle().move_turtle(pos)
 
     def _make_block(self, name, x, y, defaults):
         if defaults is None:
@@ -1684,15 +1633,19 @@ bullets'))
         (1) translate the label name into the internal block name;
         (2) 'dock' the block onto a stack where appropriate; and
         (3) disassociate the new block from the mouse. """
+        x, y = self.tw.turtles.turtle_to_screen_coordinates((x, y))
         for name in block_names:
             # Translate label name into block/prim name.
-            if blkname in block_names[name]:
+            if blkname in block_names[name]:  # block label is an array
+                # print 'found a match', blkname, name, block_names[name]
                 if name in content_blocks or \
                         (name in block_primitives and
                          block_primitives[name] == name):
+                    # print '_make_block', blkname, name
                     return self._make_block(name, x, y, defaults)
             elif blkname in block_names:
-                    return self._make_block(blkname, x, y, defaults)
+                # print '_make_block', blkname
+                return self._make_block(blkname, x, y, defaults)
         for name in special_names:
             # Translate label name into block/prim name.
             if blkname in special_names[name]:
@@ -1714,175 +1667,8 @@ bullets'))
                 self.tw.show_toolbar_palette(int(arg))
         else:
             if type(arg) == unicode:
-                arg = arg.encode('ascii', 'replace')
-            if arg in palette_names:
+                arg = arg.encode('utf-8')
+            if arg in palette_names or arg in palette_i18n_names:
                 self.tw.show_toolbar_palette(palette_name_to_index(arg))
             else:
                 raise logoerror("#syntaxerror")
-
-    # Deprecated blocks
-
-    def _prim_t1x1(self, title, media):
-        """ title, one image, and description """
-        xo = self.tw.calc_position('t1x1')[2]
-        x = -(self.tw.canvas.width / 2) + xo
-        y = self.tw.canvas.height / 2
-        self.tw.canvas.setxy(x, y, pendown=False)
-        # save the text size so we can restore it later
-        save_text_size = self.tw.canvas.textsize
-        # set title text
-        self.tw.canvas.settextsize(self.title_height)
-        self._prim_show(title)
-        # calculate and set scale for media blocks
-        myscale = 45 * (self.tw.canvas.height - self.title_height * 2) \
-            / self.tw.canvas.height
-        self._prim_setscale(myscale)
-        # set body text size
-        self.tw.canvas.settextsize(self.tw.lc.body_height)
-        # render media object
-        # leave some space below the title
-        y -= int(self.title_height * 2 * self.tw.lead)
-        self.tw.canvas.setxy(x, y, pendown=False)
-        self._prim_show(media)
-        if self.tw.running_sugar:
-            x = 0
-            self.tw.canvas.setxy(x, y, pendown=False)
-            self._prim_show(media.replace('media_', 'descr_'))
-        # restore text size
-        self.tw.canvas.settextsize(save_text_size)
-
-    def _prim_t2x1(self, title, media1, media2):
-        """ title, two images (horizontal), two descriptions """
-        xo = self.tw.calc_position('t2x1')[2]
-        x = -(self.tw.canvas.width / 2) + xo
-        y = self.tw.canvas.height / 2
-        self.tw.canvas.setxy(x, y, pendown=False)
-        # save the text size so we can restore it later
-        save_text_size = self.tw.canvas.textsize
-        # set title text
-        self.tw.canvas.settextsize(self.title_height)
-        self._prim_show(title)
-        # calculate and set scale for media blocks
-        myscale = 45 * (self.tw.canvas.height - self.title_height * 2) / \
-            self.tw.canvas.height
-        self._prim_setscale(myscale)
-        # set body text size
-        self.tw.canvas.settextsize(self.tw.lc.body_height)
-        # render four quadrents
-        # leave some space below the title
-        y -= int(self.title_height * 2 * self.tw.lead)
-        self.tw.canvas.setxy(x, y, pendown=False)
-        self._prim_show(media1)
-        x = 0
-        self.tw.canvas.setxy(x, y, pendown=False)
-        self._prim_show(media2)
-        y = -self.title_height
-        if self.tw.running_sugar:
-            self.tw.canvas.setxy(x, y, pendown=False)
-            self._prim_show(media2.replace('media_', 'descr_'))
-            x = -(self.tw.canvas.width / 2) + xo
-            self.tw.canvas.setxy(x, y, pendown=False)
-            self._prim_show(media1.replace('media_', 'descr_'))
-        # restore text size
-        self.tw.canvas.settextsize(save_text_size)
-
-    def _prim_t1x2(self, title, media1, media2):
-        """ title, two images (vertical), two desciptions """
-        xo = self.tw.calc_position('t1x2')[2]
-        x = -(self.tw.canvas.width / 2) + xo
-        y = self.tw.canvas.height / 2
-        self.tw.canvas.setxy(x, y, pendown=False)
-        # save the text size so we can restore it later
-        save_text_size = self.tw.canvas.textsize
-        # set title text
-        self.tw.canvas.settextsize(self.title_height)
-        self._prim_show(title)
-        # calculate and set scale for media blocks
-        myscale = 45 * (self.tw.canvas.height - self.title_height * 2) / \
-            self.tw.canvas.height
-        self._prim_setscale(myscale)
-        # set body text size
-        self.tw.canvas.settextsize(self.tw.lc.body_height)
-        # render four quadrents
-        # leave some space below the title
-        y -= int(self.title_height * 2 * self.tw.lead)
-        self.tw.canvas.setxy(x, y, pendown=False)
-        self._prim_show(media1)
-        if self.tw.running_sugar:
-            x = 0
-            self.tw.canvas.setxy(x, y, pendown=False)
-            self._prim_show(media1.replace('media_', 'descr_'))
-            y = -self.title_height
-            self.tw.canvas.setxy(x, y, pendown=False)
-            self._prim_show(media2.replace('media_', 'descr_'))
-            x = -(self.tw.canvas.width / 2) + xo
-            self.tw.canvas.setxy(x, y, pendown=False)
-            self._prim_show(media2)
-        # restore text size
-        self.tw.canvas.settextsize(save_text_size)
-
-    def _prim_t2x2(self, title, media1, media2, media3, media4):
-        """ title and four images """
-        xo = self.tw.calc_position('t2x2')[2]
-        x = -(self.tw.canvas.width / 2) + xo
-        y = self.tw.canvas.height / 2
-        self.tw.canvas.setxy(x, y, pendown=False)
-        # save the text size so we can restore it later
-        save_text_size = self.tw.canvas.textsize
-        # set title text
-        self.tw.canvas.settextsize(self.title_height)
-        self._prim_show(title)
-        # calculate and set scale for media blocks
-        myscale = 45 * (self.tw.canvas.height - self.title_height * 2) / \
-            self.tw.canvas.height
-        self._prim_setscale(myscale)
-        # set body text size
-        self.tw.canvas.settextsize(self.tw.lc.body_height)
-        # render four quadrents
-        # leave some space below the title
-        y -= int(self.title_height * 2 * self.tw.lead)
-        self.tw.canvas.setxy(x, y, pendown=False)
-        self._prim_show(media1)
-        x = 0
-        self.tw.canvas.setxy(x, y, pendown=False)
-        self._prim_show(media2)
-        y = -self.title_height
-        self.tw.canvas.setxy(x, y, pendown=False)
-        self._prim_show(media4)
-        x = -(self.tw.canvas.width / 2) + xo
-        self.tw.canvas.setxy(x, y, pendown=False)
-        self._prim_show(media3)
-        # restore text size
-        self.tw.canvas.settextsize(save_text_size)
-
-    def _prim_t1x1a(self, title, media1):
-        """ title, one media object """
-        xo = self.tw.calc_position('t1x1a')[2]
-        x = -(self.tw.canvas.width / 2) + xo
-        y = self.tw.canvas.height / 2
-        self.tw.canvas.setxy(x, y, pendown=False)
-        # save the text size so we can restore it later
-        save_text_size = self.tw.canvas.textsize
-        # set title text
-        self.tw.canvas.settextsize(self.title_height)
-        self._prim_show(title)
-        # calculate and set scale for media blocks
-        myscale = 90 * (self.tw.canvas.height - self.title_height * 2) / \
-            self.tw.canvas.height
-        self._prim_setscale(myscale)
-        # set body text size
-        self.tw.canvas.settextsize(self.tw.lc.body_height)
-        # render media object
-        # leave some space below the title
-        y -= int(self.title_height * 2 * self.tw.lead)
-        self.tw.canvas.setxy(x, y, pendown=False)
-        self._prim_show(media1)
-        # restore text size
-        self.tw.canvas.settextsize(save_text_size)
-
-    def _prim_write(self, string, fsize):
-        """ Write string at size """
-        x = self.tw.canvas.width / 2 + int(self.tw.canvas.xcor)
-        y = self.tw.canvas.height / 2 - int(self.tw.canvas.ycor)
-        self.tw.canvas.draw_text(string, x, y - 15, int(fsize),
-                                 self.tw.canvas.width)

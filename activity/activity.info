@@ -1,6 +1,6 @@
 [Activity]
 name = Amazonas Tortuga
-activity_version = 179
+activity_version = 192
 license = MIT
 bundle_id = org.sugarlabs.AmazonasTortuga
 exec = sugar-activity TurtleArtActivity.TurtleArtActivity
