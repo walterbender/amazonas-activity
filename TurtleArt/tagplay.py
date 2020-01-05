@@ -214,9 +214,9 @@ class GstPlayer(gobject.GObject):
         self.player.set_property('uri', uri)
 
     def on_sync_message(self, bus, message):
-        if message.structure is None:
+        if message.get_structure is None:
             return
-        if message.structure.get_name() == 'prepare-xwindow-id':
+        if message.get_structure.get_name() == 'prepare-xwindow-id':
             self.videowidget.set_sink(message.src, self.videowidget_xid)
             message.src.set_property('force-aspect-ratio', True)
 
