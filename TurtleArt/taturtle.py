@@ -21,8 +21,8 @@
 
 import os
 
-import gtk
-import gobject
+from gi.repository import Gtk
+from gi.repository import GObject
 import cairo
 
 from random import uniform
@@ -321,7 +321,7 @@ class Turtle:
                 for i in range(SHAPES):
                     surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, nw, nh)
                     context = cairo.Context(surface)
-                    context = gtk.gdk.CairoContext(context)
+                    context = Gdk.CairoContext(context)
                     context.translate(nw / 2.0, nh / 2.0)
                     context.rotate(i * 10 * pi / 180.)
                     context.translate(-nw / 2.0, -nh / 2.0)
@@ -719,7 +719,7 @@ class Turtle:
                                                round_int(width),
                                                round_int(height),
                                                data]]))
-            gobject.idle_add(self._turtles.turtle_window.send_event, event)
+            GObject.idle_add(self._turtles.turtle_window.send_event, event)
 
             os.remove(tmp_file)
 

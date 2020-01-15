@@ -20,12 +20,12 @@
 #OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #THE SOFTWARE.
 
-import gtk
+from gi.repository import Gtk
 from math import pi
 import os
-import pango
+from gi.repository import Pango
+from gi.repository import PangoCairo
 import cairo
-import pangocairo
 
 from tautils import get_path
 from taconstants import COLORDICT, TMP_SVG_PATH
@@ -114,7 +114,7 @@ class TurtleGraphics:
 
         # Build a cairo.Context from a cairo.XlibSurface
         self.canvas = cairo.Context(self.turtle_window.turtle_canvas)
-        cr = gtk.gdk.CairoContext(self.canvas)
+        cr = Gdk.CairoContext(self.canvas)
         cr.set_line_cap(1)  # Set the line cap to be round
 
         self.set_pen_size(5)
@@ -269,7 +269,7 @@ class TurtleGraphics:
         ''' Draw a surface '''
 
         def _draw_surface(cr, surface, x, y, w, h):
-            cc = gtk.gdk.CairoContext(cr)
+            cc = Gdk.CairoContext(cr)
             cc.set_source_surface(surface, x, y)
             cc.rectangle(x, y, w, h)
             cc.fill()
@@ -283,9 +283,9 @@ class TurtleGraphics:
         ''' Draw a pixbuf '''
 
         def _draw_pixbuf(cr, pixbuf, a, b, x, y, w, h, heading):
-            # Build a gtk.gdk.CairoContext from a cairo.Context to access
+            # Build a Gdk.CairoContext from a cairo.Context to access
             # the set_source_pixbuf attribute.
-            cc = gtk.gdk.CairoContext(cr)
+            cc = Gdk.CairoContext(cr)
             cc.save()
             # center the rotation on the center of the image
             cc.translate(x + w / 2., y + h / 2.)
@@ -305,10 +305,10 @@ class TurtleGraphics:
         ''' Draw text '''
 
         def _draw_text(cr, label, x, y, size, width, scale, heading, rgb):
-            cc = pangocairo.CairoContext(cr)
+            cc = PangoCairo.CairoContext(cr)
             pl = cc.create_layout()
-            fd = pango.FontDescription('Sans')
-            fd.set_size(int(size * scale) * pango.SCALE)
+            fd = Pango.FontDescription('Sans')
+            fd.set_size(int(size * scale) * Pango.SCALE)
             pl.set_font_description(fd)
             if isinstance(label, (str, unicode)):
                 pl.set_text(label.replace('\0', ' '))
@@ -316,7 +316,7 @@ class TurtleGraphics:
                 pl.set_text(str(label))
             else:
                 pl.set_text(str(label))
-            pl.set_width(int(width) * pango.SCALE)
+            pl.set_width(int(width) * Pango.SCALE)
             cc.save()
             cc.translate(x, y)
             cc.rotate(heading * DEGTOR)

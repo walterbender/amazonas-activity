@@ -34,9 +34,9 @@
 import pycurl
 import urlparse
 
-import gtk
+from gi.repository import Gtk
 try:
-    import webkit
+    from gi.repository import WebKit
     WEBKIT = True
 except ImportError:
     WEBKIT = False
@@ -83,7 +83,7 @@ class Fb_plugin(Plugin):
             menu, upload_menu = MENUBAR[_('Upload')]
         else:
             upload_menu = None
-            menu = gtk.Menu()
+            menu = Gtk.Menu()
         MenuBuilder.make_menu_item(menu, _('Facebook wall post'),
                                    self._post_menu_cb)
         if upload_menu is not None:
@@ -113,9 +113,9 @@ class Fb_plugin(Plugin):
 
     def _grab_fb_app_token(self):
         url = self._get_auth_url()
-        w = gtk.Window()
-        sw = gtk.ScrolledWindow()
-        sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        w = Gtk.Window()
+        sw = Gtk.ScrolledWindow()
+        sw.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         sw.show()
         w.move(200, 200)
         w.set_size_request(800, 400)

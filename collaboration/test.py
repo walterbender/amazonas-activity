@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import gobject
+from gi.repository import GObject
 import dbus
 import dbus.mainloop
 import dbus.mainloop.glib

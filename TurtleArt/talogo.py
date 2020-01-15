@@ -21,14 +21,14 @@
 #OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #THE SOFTWARE.
 
-import gtk
+from gi.repository import Gtk
 from time import time, sleep
 
 from operator import isNumberType
 from UserDict import UserDict
 
 try:
-    from sugar.graphics import style
+    from sugar3.graphics import style
     GRID_CELL_SIZE = style.GRID_CELL_SIZE
 except ImportError:
     GRID_CELL_SIZE = 55
@@ -725,7 +725,7 @@ class LogoCode:
         if pixbuf:  # We may have to rescale the picture
             if w != self.pixbuf.get_width() or h != self.pixbuf.get_height():
                 self.pixbuf = self.pixbuf.scale_simple(
-                    w, h, gtk.gdk.INTERP_BILINEAR)
+                    w, h, GdkPixbuf.InterpType.BILINEAR)
         elif self.dsobject is not None:
             try:
                 self.pixbuf = get_pixbuf_from_journal(self.dsobject, w, h)
@@ -737,11 +737,11 @@ class LogoCode:
            self.filepath != '':
             try:
                 if not resize:
-                    self.pixbuf = gtk.gdk.pixbuf_new_from_file(self.filepath)
+                    self.pixbuf = GdkPixbuf.Pixbuf.new_from_file(self.filepath)
                     w = self.pixbuf.get_width()
                     h = self.pixbuf.get_height()
                 else:
-                    self.pixbuf = gtk.gdk.pixbuf_new_from_file_at_size(
+                    self.pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(
                         self.filepath, w, h)
             except:
                 self.tw.showlabel('nojournal', self.filepath)

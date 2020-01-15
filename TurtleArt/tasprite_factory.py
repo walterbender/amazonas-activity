@@ -20,9 +20,9 @@
 #OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #THE SOFTWARE.
 
-import pygtk
-pygtk.require('2.0')
-import gtk
+import gi
+gi.require_version('Gtk', '3.0')
+from gi.repository import Gtk
 import os
 
 from taconstants import HIT_RED, HIT_GREEN, HIDE_WHITE, SHOW_WHITE, \
@@ -1506,7 +1506,7 @@ if __name__ == "__main__":
 
 def svg_str_to_pixbuf(svg_string):
     """ Load pixbuf from SVG string """
-    pl = gtk.gdk.PixbufLoader('svg')
+    pl = GdkPixbuf.PixbufLoader('svg')
     pl.write(svg_string)
     pl.close()
     pixbuf = pl.get_pixbuf()

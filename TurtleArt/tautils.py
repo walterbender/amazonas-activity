@@ -20,10 +20,10 @@
 #OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #THE SOFTWARE.
 
-import gtk
-import gobject
+from gi.repository import Gtk
+from gi.repository import GObject
 try:
-    import gconf
+    from gi.repository import GConf
     HAS_GCONF = True
 except ImportError:
     HAS_GCONF = False
@@ -296,21 +296,21 @@ def json_dump(data):
 
 def get_load_name(filefilter, load_save_folder):
     ''' Open a load file dialog. '''
-    dialog = gtk.FileChooserDialog(
+    dialog = Gtk.FileChooserDialog(
         _('Load...'), None,
-        gtk.FILE_CHOOSER_ACTION_OPEN, (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
-                                       gtk.STOCK_OPEN, gtk.RESPONSE_OK))
-    dialog.set_default_response(gtk.RESPONSE_OK)
+        Gtk.FileChooserAction.OPEN, (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+                                       Gtk.STOCK_OPEN, Gtk.ResponseType.OK))
+    dialog.set_default_response(Gtk.ResponseType.OK)
     return do_dialog(dialog, filefilter, load_save_folder)
 
 
 def get_save_name(filefilter, load_save_folder, save_file_name):
     ''' Open a save file dialog. '''
-    dialog = gtk.FileChooserDialog(
+    dialog = Gtk.FileChooserDialog(
         _('Save...'), None,
-        gtk.FILE_CHOOSER_ACTION_SAVE, (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
-                                       gtk.STOCK_SAVE, gtk.RESPONSE_OK))
-    dialog.set_default_response(gtk.RESPONSE_OK)
+        Gtk.FileChooserAction.SAVE, (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+                                       Gtk.STOCK_SAVE, Gtk.ResponseType.OK))
+    dialog.set_default_response(Gtk.ResponseType.OK)
     if filefilter in ['.png', '.svg', '.lg']:
         suffix = filefilter
     else:
@@ -324,7 +324,7 @@ def get_save_name(filefilter, load_save_folder, save_file_name):
 
 def chooser_dialog(parent_window, filter, action):
     ''' Choose an object from the datastore and take some action '''
-    from sugar.graphics.objectchooser import ObjectChooser
+    from sugar3.graphics.objectchooser import ObjectChooser
 
     chooser = None
     dsobject = None
@@ -335,17 +335,17 @@ def chooser_dialog(parent_window, filter, action):
         chooser = ObjectChooser(
             None,
             parent_window,
-            gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT)
+            Gtk.DialogFlags.MODAL | Gtk.DialogFlags.DESTROY_WITH_PARENT)
         cleanup_needed = True
 
     if chooser is not None:
         result = chooser.run()
-        if result == gtk.RESPONSE_ACCEPT:
+        if result == Gtk.ResponseType.ACCEPT:
             dsobject = chooser.get_selected_object()
         if cleanup_needed:
             chooser.destroy()
             del chooser
-    gobject.idle_add(action, dsobject)
+    GObject.idle_add(action, dsobject)
 
 
 def data_from_file(ta_file):
@@ -393,13 +393,13 @@ def data_to_string(data):
 def do_dialog(dialog, suffix, load_save_folder):
     ''' Open a file dialog. '''
     result = None
-    file_filter = gtk.FileFilter()
+    file_filter = Gtk.FileFilter()
     file_filter.add_pattern('*' + suffix)
     file_filter.set_name('Turtle Art')
     dialog.add_filter(file_filter)
     dialog.set_current_folder(load_save_folder)
     response = dialog.run()
-    if response == gtk.RESPONSE_OK:
+    if response == Gtk.ResponseType.OK:
         result = dialog.get_filename()
         load_save_folder = dialog.get_current_folder()
     dialog.destroy()
@@ -434,12 +434,12 @@ def get_canvas_data(canvas):
 def get_pixbuf_from_journal(dsobject, w, h):
     ''' Load a pixbuf from a Journal object. '''
     try:
-        pixbuf = gtk.gdk.pixbuf_new_from_file_at_size(dsobject.file_path,
+        pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(dsobject.file_path,
                                                       int(w), int(h))
     except:
         try:
             pixbufloader = \
-                gtk.gdk.pixbuf_loader_new_with_mime_type('image/png')
+                GdkPixbuf.Pixbuf.loader_new_with_mime_type('image/png')
             pixbufloader.set_size(min(300, int(w)), min(225, int(h)))
             pixbufloader.write(dsobject.metadata['preview'])
             pixbufloader.close()
@@ -848,7 +848,7 @@ def _get_dmi(node):
 
 def get_screen_dpi():
     ''' Return screen DPI '''
-    xft_dpi = gtk.settings_get_default().get_property('gtk-xft-dpi')
+    xft_dpi = Gtk.Settings.get_default().get_property('gtk-xft-dpi')
     dpi = float(xft_dpi / 1024)
     return dpi
 
@@ -891,7 +891,7 @@ def power_manager_off(status):
     OHM_SERVICE_IFACE = 'org.freedesktop.ohm.Keystore'
     PATH = '/etc/powerd/flags/inhibit-suspend'
 
-    client = gconf.client_get_default()
+    client = GConf.Client.get_default()
 
     ACTUAL_POWER = True
 
@@ -906,7 +906,7 @@ def power_manager_off(status):
 
     try:
         client.set_bool('/desktop/sugar/power/automatic', VALUE)
-    except gconf.GError:
+    except GConf.GError:
         pass
 
     bus = dbus.SystemBus()

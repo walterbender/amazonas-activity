@@ -19,7 +19,7 @@
 #OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #THE SOFTWARE.
 
-import gtk
+from gi.repository import Gtk
 import cairo
 
 from taconstants import (EXPANDABLE, EXPANDABLE_ARGS, OLD_NAMES, CONSTANTS,
@@ -316,7 +316,7 @@ class Block:
         if self.spr is None:
             return
         if self._image is not None:
-            tmp = self._image.scale_simple(w, h, gtk.gdk.INTERP_NEAREST)
+            tmp = self._image.scale_simple(w, h, GdkPixbuf.InterpType.NEAREST)
             self.spr.set_image(tmp, 1, x, y)
 
     def rescale(self, scale):
@@ -1139,7 +1139,7 @@ def _pixbuf_to_cairo_surface(image, width, height):
     surface = cairo.ImageSurface(
         cairo.FORMAT_ARGB32, int(width), int(height))
     context = cairo.Context(surface)
-    context = gtk.gdk.CairoContext(context)
+    context = Gdk.CairoContext(context)
     context.set_source_pixbuf(image, 0, 0)
     context.rectangle(0, 0, int(width), int(height))
     context.fill()

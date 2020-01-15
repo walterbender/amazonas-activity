@@ -26,6 +26,7 @@ import gi
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk
 import cairo
+from gi.repository import Gdk
 from gi.repository import GObject
 import dbus
 import glob

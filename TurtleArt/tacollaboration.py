@@ -21,9 +21,9 @@
 
 from dbus.service import signal
 from dbus.gobject_service import ExportedGObject
-import telepathy
+from gi.repository import TelepathyGLib
 import os
-import gtk
+from gi.repository import Gtk
 
 from gettext import gettext as _
 
@@ -32,9 +32,9 @@ from TurtleArt.tautils import (data_to_string, data_from_string, get_path,
 from TurtleArt.taconstants import DEFAULT_TURTLE_COLORS
 
 try:
-    from sugar import profile
-    from sugar.presence import presenceservice
-    from sugar.presence.tubeconn import TubeConnection
+    from sugar3 import profile
+    from sugar3.presence import presenceservice
+    from sugar3.presence.tubeconn import TubeConnection
 except:
     profile = None
     from collaboration import presenceservice
@@ -305,7 +305,7 @@ class Collaboration():
                 else:
                     tmp_path = '/tmp'
                 file_name = base64_to_image(data, tmp_path)
-                pixbuf = gtk.gdk.pixbuf_new_from_file_at_size(file_name,
+                pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(file_name,
                                                               width, height)
                 self._tw.turtles.set_turtle(nick)
                 self._tw.turtles.get_active_turtle().set_shapes([pixbuf])
@@ -320,7 +320,7 @@ class Collaboration():
                 else:
                     tmp_path = '/tmp'
                 file_name = base64_to_image(data, tmp_path)
-                pixbuf = gtk.gdk.pixbuf_new_from_file_at_size(file_name,
+                pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(file_name,
                                                               width, height)
                 pos = self._tw.turtles.turtle_to_screen_coordinates((x, y))
                 self._tw.turtles.get_active_turtle().draw_pixbuf(

@@ -22,17 +22,17 @@
 #OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #THE SOFTWARE.
 
-import pygtk
-pygtk.require('2.0')
-import gtk
-import gobject
-import pango
-import pangocairo
+import gi
+gi.require_version('Gtk', '3.0')
+from gi.repository import Gtk
+from gi.repository import GObject
+from gi.repository import Pango
+from gi.repository import PangoCairo
 
 from gettext import gettext as _
 
 try:
-    import gst
+    from gi.repository import Gst
     _GST_AVAILABLE = True
 except ImportError:
     # Turtle Art should not fail if gst is not available
@@ -119,16 +119,16 @@ class TurtleArtWindow():
         self.running_sugar = False
         self.nick = None
         self.running_turtleart = running_turtleart
-        if isinstance(canvas_window, gtk.DrawingArea):
+        if isinstance(canvas_window, Gtk.DrawingArea):
             self.interactive_mode = True
             self.window = canvas_window
-            self.window.set_flags(gtk.CAN_FOCUS)
+            self.window.set_flags(Gtk.CAN_FOCUS)
             self.window.show_all()
             if running_sugar:
                 self.parent.show_all()
                 self.running_sugar = True
 
-                from sugar import profile
+                from sugar3 import profile
 
                 self.nick = profile.get_nick_name()
                 self.macros_path = os.path.join(
@@ -159,9 +159,9 @@ class TurtleArtWindow():
         self.save_file_name = None
         
         # dimensions
-        self.width = gtk.gdk.screen_width()
-        self.height = gtk.gdk.screen_height()
-        self.rect = gtk.gdk.Rectangle(0, 0, 0, 0)
+        self.width = Gdk.Screen.width()
+        self.height = Gdk.Screen.height()
+        self.rect = (0, 0, 0, 0)
 
         self.no_help = False
         self.last_label = None
@@ -301,7 +301,7 @@ class TurtleArtWindow():
             self._basic_palettes = Palettes(self)
 
         if self.interactive_mode:
-            gobject.idle_add(self._lazy_init)
+            GObject.idle_add(self._lazy_init)
         else:
             self._init_plugins()
             self._setup_plugins()
@@ -332,7 +332,7 @@ class TurtleArtWindow():
         dpi = get_screen_dpi()
         if self.hw in (XO1, XO15, XO175, XO4):
             dpi = 133  # Tweek because of XO display peculiarities
-        font_map_default = pangocairo.cairo_font_map_get_default()
+        font_map_default = PangoCairo.cairo_font_map_get_default()
         font_map_default.set_resolution(dpi)
 
     def _tablet_mode(self):
@@ -386,7 +386,7 @@ class TurtleArtWindow():
 
     def _add_plugin_icon_dir(self, dirname):
         ''' If there is an icon subdir, add it to the search path. '''
-        icon_theme = gtk.icon_theme_get_default()
+        icon_theme = Gtk.IconTheme.get_default()
         icon_path = os.path.join(dirname, 'icons')
         if os.path.exists(icon_path):
             icon_theme.append_search_path(icon_path)
@@ -475,21 +475,21 @@ class TurtleArtWindow():
 
     def _setup_events(self):
         ''' Register the events we listen to. '''
-        self.window.add_events(gtk.gdk.BUTTON_PRESS_MASK)
-        self.window.add_events(gtk.gdk.BUTTON_RELEASE_MASK)
-        self.window.add_events(gtk.gdk.POINTER_MOTION_MASK)
-        self.window.add_events(gtk.gdk.KEY_PRESS_MASK)
+        self.window.add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
+        self.window.add_events(Gdk.EventMask.BUTTON_RELEASE_MASK)
+        self.window.add_events(Gdk.EventMask.POINTER_MOTION_MASK)
+        self.window.add_events(Gdk.EventMask.KEY_PRESS_MASK)
         self.window.connect('expose-event', self._expose_cb)
         self.window.connect('button-press-event', self._buttonpress_cb)
         self.window.connect('button-release-event', self._buttonrelease_cb)
         self.window.connect('motion-notify-event', self._move_cb)
         self.window.connect('key-press-event', self._keypress_cb)
-        gtk.gdk.screen_get_default().connect('size-changed',
+        Gdk.Screen.get_default().connect('size-changed',
                                              self._configure_cb)
 
         target = [('text/plain', 0, 0)]
-        self.window.drag_dest_set(gtk.DEST_DEFAULT_ALL, target,
-                                  gtk.gdk.ACTION_COPY | gtk.gdk.ACTION_MOVE)
+        self.window.drag_dest_set(Gtk.DestDefaults.ALL, target,
+                                  Gdk.DragAction.COPY | Gdk.DragAction.MOVE)
         self.window.connect('drag_data_received', self._drag_data_received)
 
     def _show_unfullscreen_button(self):
@@ -500,12 +500,12 @@ class TurtleArtWindow():
         # Reset the timer
         if hasattr(self.activity, '_unfullscreen_button_timeout_id'):
             if self.activity._unfullscreen_button_timeout_id is not None:
-                gobject.source_remove(
+                GObject.source_remove(
                     self.activity._unfullscreen_button_timeout_id)
                 self.activity._unfullscreen_button_timeout_id = None
 
             self.activity._unfullscreen_button_timeout_id = \
-                gobject.timeout_add_seconds(_UNFULLSCREEN_VISIBILITY_TIMEOUT,
+                GObject.timeout_add_seconds(_UNFULLSCREEN_VISIBILITY_TIMEOUT,
                     self.__unfullscreen_button_timeout_cb)
 
     def __unfullscreen_button_timeout_cb(self):
@@ -613,7 +613,7 @@ class TurtleArtWindow():
             int(self.height / 2 - 450),
             pixbuf.scale_simple(int(1200 * scale),
                                 int(900 * scale),
-                                gtk.gdk.INTERP_BILINEAR))
+                                GdkPixbuf.InterpType.BILINEAR))
         self.overlay_shapes['Cartesian'].set_layer(TAB_LAYER)
         self.overlay_shapes['Cartesian'].hide()
 
@@ -629,8 +629,8 @@ class TurtleArtWindow():
 
     def _configure_cb(self, event):
         ''' Screen size has changed '''
-        self.width = gtk.gdk.screen_width()
-        self.height = gtk.gdk.screen_height()
+        self.width = Gdk.Screen.width()
+        self.height = Gdk.Screen.height()
         CONSTANTS['titlex'] = int(-(self.width * TITLEXY[0]) /
                                    (self.coord_scale * 2))
         CONSTANTS['leftx'] = int(-(self.width * TITLEXY[0]) /
@@ -792,8 +792,8 @@ class TurtleArtWindow():
         ''' Reposition the overlays when window size changes '''
         # self.width = event.width
         # self.height = event.height
-        self.width = gtk.gdk.screen_width()
-        self.height = gtk.gdk.screen_height()
+        self.width = Gdk.Screen.width()
+        self.height = Gdk.Screen.height()
 
         for name in OVERLAY_SHAPES:
             if not name in self.overlay_shapes:
@@ -947,9 +947,9 @@ class TurtleArtWindow():
 
         # Resize text_entry widget
         if hasattr(self, '_text_entry') and len(blocks) > 0:
-            font_desc = pango.FontDescription('Sans')
+            font_desc = Pango.FontDescription('Sans')
             font_desc.set_size(
-                int(blocks[0].font_size[0] * pango.SCALE * self.entry_scale))
+                int(blocks[0].font_size[0] * Pango.SCALE * self.entry_scale))
             self._text_entry.modify_font(font_desc)
 
     def _shift_toolbar_palette(self, n):
@@ -1474,7 +1474,7 @@ class TurtleArtWindow():
         self.mouse_flag = 1
         self.mouse_x = x
         self.mouse_y = y
-        self.button_press(event.get_state() & gtk.gdk.CONTROL_MASK, x, y)
+        self.button_press(event.get_state() & Gdk.ModifierType.CONTROL_MASK, x, y)
         return True
 
     def button_press(self, mask, x, y):
@@ -1569,14 +1569,14 @@ before making changes to your program'))
         if self.copying_blocks or self.sharing_blocks or self.saving_blocks:
             if blk is None or blk.type != 'block':
                 self.parent.get_window().set_cursor(
-                    gtk.gdk.Cursor(gtk.gdk.LEFT_PTR))
+                    Gdk.Cursor.new(Gdk.CursorType.LEFT_PTR))
                 self.copying_blocks = False
                 self.sharing_blocks = False
                 self.saving_blocks = False
         elif self.deleting_blocks:
             if blk is None or blk.type != 'proto':
                 self.parent.get_window().set_cursor(
-                    gtk.gdk.Cursor(gtk.gdk.LEFT_PTR))
+                    Gdk.Cursor.new(Gdk.CursorType.LEFT_PTR))
                 self.deleting_blocks = False
         if blk is not None:
             if blk.type == 'block':
@@ -1591,7 +1591,7 @@ before making changes to your program'))
                             palette_names.index('my blocks'):
                         self._delete_stack_alert(blk)
                     self.parent.get_window().set_cursor(
-                        gtk.gdk.Cursor(gtk.gdk.LEFT_PTR))
+                        Gdk.Cursor.new(Gdk.CursorType.LEFT_PTR))
                     self.deleting_blocks = False
                 elif blk.name == 'restoreall':
                     self._restore_all_from_trash()
@@ -1714,18 +1714,18 @@ before making changes to your program'))
 
     def _save_stack_alert(self, name, data, macro_path):
         if self.running_sugar:
-            from sugar.graphics.alert import Alert
-            from sugar.graphics.icon import Icon
+            from sugar3.graphics.alert import Alert
+            from sugar3.graphics.icon import Icon
 
             alert = Alert()
             alert.props.title = _('Save stack')
             alert.props.msg = _('Really overwrite stack?')
 
             cancel_icon = Icon(icon_name='dialog-cancel')
-            alert.add_button(gtk.RESPONSE_CANCEL, _('Cancel'),
+            alert.add_button(Gtk.ResponseType.CANCEL, _('Cancel'),
                              cancel_icon)
             stop_icon = Icon(icon_name='dialog-ok')
-            alert.add_button(gtk.RESPONSE_OK, '%s %s' %
+            alert.add_button(Gtk.ResponseType.OK, '%s %s' %
                              (_('Overwrite stack'), name), stop_icon)
 
             self.activity.add_alert(alert)
@@ -1734,18 +1734,18 @@ before making changes to your program'))
                           macro_path)
         else:
             msg = _('Really overwrite stack?')
-            dialog = gtk.MessageDialog(self.parent, 0, gtk.MESSAGE_WARNING,
-                                       gtk.BUTTONS_OK_CANCEL, msg)
+            dialog = Gtk.MessageDialog(self.parent, 0, Gtk.MessageType.WARNING,
+                                       Gtk.ButtonsType.OK_CANCEL, msg)
             dialog.set_title('%s %s' % (_('Overwrite stack'), name))
             answer = dialog.run()
             dialog.destroy()
-            if answer == gtk.RESPONSE_OK:
+            if answer == Gtk.ResponseType.OK:
                 self._save_stack(data, macro_path)
 
     def _overwrite_stack_dialog_response_cb(self, alert, response_id,
                                             data, macro_path):
         self.activity.remove_alert(alert)
-        if response_id == gtk.RESPONSE_OK:
+        if response_id == Gtk.ResponseType.OK:
             self._save_stack(data, macro_path)
 
     def _save_stack(self, data, macro_path):
@@ -1753,18 +1753,18 @@ before making changes to your program'))
 
     def _delete_stack_alert(self, blk):
         if self.running_sugar:
-            from sugar.graphics.alert import Alert
-            from sugar.graphics.icon import Icon
+            from sugar3.graphics.alert import Alert
+            from sugar3.graphics.icon import Icon
 
             alert = Alert()
             alert.props.title = _('Delete stack')
             alert.props.msg = _('Really delete stack?')
 
             cancel_icon = Icon(icon_name='dialog-cancel')
-            alert.add_button(gtk.RESPONSE_CANCEL, _('Cancel'),
+            alert.add_button(Gtk.ResponseType.CANCEL, _('Cancel'),
                              cancel_icon)
             stop_icon = Icon(icon_name='dialog-ok')
-            alert.add_button(gtk.RESPONSE_OK, '%s %s' %
+            alert.add_button(Gtk.ResponseType.OK, '%s %s' %
                              (_('Delete stack'), blk.spr.labels[0]), stop_icon)
 
             self.activity.add_alert(alert)
@@ -1772,17 +1772,17 @@ before making changes to your program'))
                           blk)
         else:
             msg = _('Really delete stack?')
-            dialog = gtk.MessageDialog(self.parent, 0, gtk.MESSAGE_WARNING,
-                                       gtk.BUTTONS_OK_CANCEL, msg)
+            dialog = Gtk.MessageDialog(self.parent, 0, Gtk.MessageType.WARNING,
+                                       Gtk.ButtonsType.OK_CANCEL, msg)
             dialog.set_title('%s %s' % (_('Delete stack'), blk.spr.labels[0]))
             answer = dialog.run()
             dialog.destroy()
-            if answer == gtk.RESPONSE_OK:
+            if answer == Gtk.ResponseType.OK:
                 self._delete_stack(blk)
 
     def _delete_stack_dialog_response_cb(self, alert, response_id, blk):
         self.activity.remove_alert(alert)
-        if response_id == gtk.RESPONSE_OK:
+        if response_id == Gtk.ResponseType.OK:
             self._delete_stack(blk)
 
     def _delete_stack(self, blk):
@@ -2225,7 +2225,7 @@ before making changes to your program'))
                                 self._save_stack(data, macro_path)
                             self.drag_group = None
                     elif self.copying_blocks:
-                        clipboard = gtk.Clipboard()
+                        clipboard = Gtk.Clipboard()
                         debug_output('Serialize blocks and copy to clipboard',
                                      self.running_sugar)
                         text = data_to_string(data)
@@ -2239,7 +2239,7 @@ before making changes to your program'))
             self.paste_offset = 20
 
             self.parent.get_window().set_cursor(
-                gtk.gdk.Cursor(gtk.gdk.LEFT_PTR))
+                Gdk.Cursor.new(Gdk.CursorType.LEFT_PTR))
             self.saving_blocks = False
 
             if self.running_sugar and self._sharing and \
@@ -2709,7 +2709,7 @@ before making changes to your program'))
             else:
                 if self._timeout_tag[0] > 0:
                     try:
-                        gobject.source_remove(self._timeout_tag[0])
+                        GObject.source_remove(self._timeout_tag[0])
                         self._timeout_tag[0] = 0
                     except:
                         self._timeout_tag[0] = 0
@@ -2723,14 +2723,14 @@ before making changes to your program'))
             else:
                 if self._timeout_tag[0] > 0:
                     try:
-                        gobject.source_remove(self._timeout_tag[0])
+                        GObject.source_remove(self._timeout_tag[0])
                         self._timeout_tag[0] = 0
                     except:
                         self._timeout_tag[0] = 0
         else:
             if self._timeout_tag[0] > 0:
                 try:
-                    gobject.source_remove(self._timeout_tag[0])
+                    GObject.source_remove(self._timeout_tag[0])
                     self._timeout_tag[0] = 0
                 except:
                     self._timeout_tag[0] = 0
@@ -2843,7 +2843,7 @@ before making changes to your program'))
                 abs(self.dy < _MOTION_THRESHOLD))):
             self._click_block(x, y)
         elif self.block_operation == 'copying':
-            gobject.timeout_add(500, self._unhighlight_drag_group, blk)
+            GObject.timeout_add(500, self._unhighlight_drag_group, blk)
 
     def _unhighlight_drag_group(self, blk):
         self.drag_group = find_group(blk)
@@ -2903,12 +2903,12 @@ before making changes to your program'))
         if blk.name in ['string', 'number']:
             self._saved_string = blk.spr.labels[0]
             if not hasattr(self, '_text_entry'):
-                self._text_entry = gtk.TextView()
-                self._text_entry.set_justification(gtk.JUSTIFY_CENTER)
+                self._text_entry = Gtk.TextView()
+                self._text_entry.set_justification(Gtk.Justification.CENTER)
                 self._text_buffer = self._text_entry.get_buffer()
-                font_desc = pango.FontDescription('Sans')
+                font_desc = Pango.FontDescription('Sans')
                 font_desc.set_size(
-                    int(blk.font_size[0] * pango.SCALE * self.entry_scale))
+                    int(blk.font_size[0] * Pango.SCALE * self.entry_scale))
                 self._text_entry.modify_font(font_desc)
                 self.activity.fixed.put(self._text_entry, 0, 0)
             self._text_entry.show()
@@ -3171,7 +3171,7 @@ before making changes to your program'))
         code = self.lc.generate_code(top, self.just_blocks())
         self.lc.run_blocks(code)
         if self.interactive_mode:
-            gobject.idle_add(self.lc.doevalstep)
+            GObject.idle_add(self.lc.doevalstep)
         else:
             while self.lc.doevalstep():
                 pass
@@ -3548,7 +3548,7 @@ before making changes to your program'))
                 blk.name = 'audio'
             elif image_media_type(picture):
                 w, h = calc_image_size(blk.spr)
-                pixbuf = gtk.gdk.pixbuf_new_from_file_at_size(picture, w, h)
+                pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(picture, w, h)
             else:
                 blk.name = 'description'
         if pixbuf is not None:
@@ -3558,9 +3558,9 @@ before making changes to your program'))
 
     def _keypress_cb(self, area, event):
         ''' Keyboard '''
-        keyname = gtk.gdk.keyval_name(event.keyval)
-        keyunicode = gtk.gdk.keyval_to_unicode(event.keyval)
-        if event.get_state() & gtk.gdk.MOD1_MASK:
+        keyname = Gdk.keyval_name(event.keyval)
+        keyunicode = Gdk.keyval_to_unicode(event.keyval)
+        if event.get_state() & Gdk.ModifierType.MOD1_MASK:
             alt_mask = True
         else:
             alt_mask = False
@@ -3793,8 +3793,8 @@ before making changes to your program'))
             if fname in self._py_cache:
                 id = self._py_cache[fname]
             else:
-                from sugar.datastore import datastore
-                from sugar import profile
+                from sugar3.datastore import datastore
+                from sugar3 import profile
 
                 dsobject = datastore.create()
                 dsobject.metadata['title'] = os.path.basename(fname)
@@ -3955,7 +3955,7 @@ before making changes to your program'))
     def load_block(self, b, offset=0):
         ''' Restore individual blocks from saved state '''
         if self.running_sugar:
-            from sugar.datastore import datastore
+            from sugar3.datastore import datastore
 
         if b[1] == 0:
             return None
@@ -4141,7 +4141,7 @@ before making changes to your program'))
                 except:
                     try:
                         w, h, = calc_image_size(blk.spr)
-                        pixbuf = gtk.gdk.pixbuf_new_from_file_at_size(
+                        pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(
                             blk.values[0], w, h)
                         x, y = self._calc_image_offset('', blk.spr)
                         blk.set_image(pixbuf, x, y)
@@ -4153,7 +4153,7 @@ before making changes to your program'))
                 if not movie_media_type(blk.values[0][-4:]):
                     try:
                         w, h, = calc_image_size(blk.spr)
-                        pixbuf = gtk.gdk.pixbuf_new_from_file_at_size(
+                        pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(
                             blk.values[0], w, h)
                         x, y = self._calc_image_offset('', blk.spr)
                         blk.set_image(pixbuf, x, y)
@@ -4457,8 +4457,8 @@ before making changes to your program'))
             save_picture(self.canvas, file_path)
 
         if self.running_sugar:
-            from sugar.datastore import datastore
-            from sugar import profile
+            from sugar3.datastore import datastore
+            from sugar3 import profile
 
             dsobject = datastore.create()
             if len(name) == 0:

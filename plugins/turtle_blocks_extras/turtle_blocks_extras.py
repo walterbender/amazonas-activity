@@ -15,8 +15,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
-import gtk
-import gobject
+from gi.repository import Gtk
+from gi.repository import GObject
 from time import time
 import os
 import glob
@@ -1197,7 +1197,7 @@ Journal objects'))
                     n[6:].lower not in media_blocks_dictionary:
                 try:
                     if self.tw.running_sugar:
-                        from sugar.datastore import datastore
+                        from sugar3.datastore import datastore
                         try:
                             dsobject = datastore.get(n[6:])
                         except:
@@ -1252,7 +1252,7 @@ Journal objects'))
         if os.path.exists(media[6:]):  # is it a path?
             self.tw.lc.filepath = media[6:]
         elif self.tw.running_sugar:  # is it a datastore object?
-            from sugar.datastore import datastore
+            from sugar3.datastore import datastore
             try:
                 dsobject = datastore.get(media[6:])
             except:
@@ -1265,7 +1265,7 @@ Journal objects'))
             return
         pixbuf = None
         try:
-            pixbuf = gtk.gdk.pixbuf_new_from_file_at_size(self.tw.lc.filepath,
+            pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(self.tw.lc.filepath,
                                                           scale, scale)
         except:
             self.tw.showlabel('nojournal', self.tw.lc.filepath)
@@ -1295,7 +1295,7 @@ Journal objects'))
                                               [round_int(width),
                                                round_int(height),
                                                data]]))
-            gobject.idle_add(self.tw.send_event, event)
+            GObject.idle_add(self.tw.send_event, event)
             os.remove(tmp_file)
 
     def _prim_save_picture(self, name):
@@ -1445,7 +1445,7 @@ Journal objects'))
                 elif os.path.exists(string[6:]):  # is it a path?
                     self.tw.lc.filepath = string[6:]
                 elif self.tw.running_sugar:  # is it a datastore object?
-                    from sugar.datastore import datastore
+                    from sugar3.datastore import datastore
                     try:
                         self.tw.lc.dsobject = datastore.get(string[6:])
                     except:

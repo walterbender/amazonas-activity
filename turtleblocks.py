@@ -21,10 +21,10 @@
 #OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #THE SOFTWARE.
 
-import pygtk
-pygtk.require('2.0')
-import gtk
-import gobject
+import gi
+gi.require_version('Gtk', '3.0')
+from gi.repository import Gtk
+from gi.repository import GObject
 import cairo
 
 import getopt
@@ -35,7 +35,7 @@ import glob
 import cStringIO
 import errno
 import ConfigParser
-import gconf
+from gi.repository import GConf
 
 try:
     # Try to use XDG Base Directory standard for config files.
@@ -118,7 +118,7 @@ class TurtleMain():
             self._start_gtk()
 
     def _get_gconf_settings(self):
-        self.client = gconf.client_get_default()
+        self.client = GConf.Client.get_default()
 
     def get_config_home(self):
         return CONFIG_HOME
@@ -186,16 +186,16 @@ return %s(self)" % (p, P, P)
         if self._ta_file is None:
             self.tw.load_start()
         else:
-            self.win.get_window().set_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
-            gobject.idle_add(self._project_loader, self._ta_file)
-        gtk.main()
+            self.win.get_window().set_cursor(Gdk.Cursor.new(Gdk.CursorType.WATCH))
+            GObject.idle_add(self._project_loader, self._ta_file)
+        Gtk.main()
 
     def _project_loader(self, file_name):
         self.tw.load_start(self._ta_file)
         self.tw.lc.trace = 0
         if self._run_on_launch:
             self._do_run_cb()
-        self.win.get_window().set_cursor(gtk.gdk.Cursor(gtk.gdk.LEFT_PTR))
+        self.win.get_window().set_cursor(Gdk.Cursor.new(Gdk.CursorType.LEFT_PTR))
 
     def _draw_and_quit(self):
         ''' Non-interactive mode: run the project, save it to a file
@@ -217,8 +217,8 @@ return %s(self)" % (p, P, P)
             cr = cairo.Context(img_surface)
             surface = cr.get_target()
         self.turtle_canvas = surface.create_similar(
-            cairo.CONTENT_COLOR, max(1024, gtk.gdk.screen_width() * 2),
-            max(768, gtk.gdk.screen_height() * 2))
+            cairo.CONTENT_COLOR, max(1024, Gdk.Screen.width() * 2),
+            max(768, Gdk.Screen.height() * 2))
         self.tw = TurtleArtWindow(self.canvas, self._execdirname,
                                   turtle_canvas=self.turtle_canvas,
                                   activity=self, running_sugar=False)
@@ -322,7 +322,7 @@ return %s(self)" % (p, P, P)
 
     def _setup_gtk(self):
         ''' Set up a scrolled window in which to run Turtle Blocks. '''
-        win = gtk.Window(gtk.WINDOW_TOPLEVEL)
+        win = Gtk.Window(Gtk.WindowType.TOPLEVEL)
         win.set_default_size(self.width, self.height)
         win.move(self.x, self.y)
         win.maximize()
@@ -337,13 +337,13 @@ return %s(self)" % (p, P, P)
         add a Fixed container in order to position text Entry widgets
         on top of string and number blocks.'''
 
-        self.fixed = gtk.Fixed()
+        self.fixed = Gtk.Fixed()
         self.fixed.connect('size-allocate', self._fixed_resize_cb)
-        width = gtk.gdk.screen_width() - 80
-        height = gtk.gdk.screen_height() - 80
+        width = Gdk.Screen.width() - 80
+        height = Gdk.Screen.height() - 80
         self.fixed.set_size_request(width, height)
 
-        self.vbox = gtk.VBox(False, 0)
+        self.vbox = Gtk.VBox(False, 0)
         self.vbox.show()
 
         self.menu_bar = self._get_menu_bar()
@@ -351,12 +351,12 @@ return %s(self)" % (p, P, P)
         self.menu_bar.show()
         self.menu_height = self.menu_bar.size_request()[1]
 
-        self.sw = gtk.ScrolledWindow()
-        self.sw.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        self.sw = Gtk.ScrolledWindow()
+        self.sw.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         self.sw.show()
-        canvas = gtk.DrawingArea()
-        width = gtk.gdk.screen_width() * 2
-        height = gtk.gdk.screen_height() * 2
+        canvas = Gtk.DrawingArea()
+        width = Gdk.Screen.width() * 2
+        height = Gdk.Screen.height() * 2
         canvas.set_size_request(width, height)
         self.sw.add_with_viewport(canvas)
         canvas.show()
@@ -371,7 +371,7 @@ return %s(self)" % (p, P, P)
 
     def _get_menu_bar(self):
         ''' Instead of Sugar toolbars, use GNOME menus. '''
-        menu = gtk.Menu()
+        menu = Gtk.Menu()
         MenuBuilder.make_menu_item(menu, _('New'), self._do_new_cb)
         MenuBuilder.make_menu_item(menu, _('Open'), self._do_open_cb)
         MenuBuilder.make_menu_item(menu, _('Load project'), self._do_load_cb)
@@ -384,7 +384,7 @@ return %s(self)" % (p, P, P)
         MenuBuilder.make_menu_item(menu, _('Quit'), self._quit_ta)
         activity_menu = MenuBuilder.make_sub_menu(menu, _('File'))
 
-        menu = gtk.Menu()
+        menu = Gtk.Menu()
         MenuBuilder.make_menu_item(menu, _('Cartesian coordinates'),
                                    self._do_cartesian_cb)
         MenuBuilder.make_menu_item(menu, _('Polar coordinates'),
@@ -402,7 +402,7 @@ return %s(self)" % (p, P, P)
             self._do_toggle_hover_help_cb, status=True)
         view_menu = MenuBuilder.make_sub_menu(menu, _('View'))
 
-        menu = gtk.Menu()
+        menu = Gtk.Menu()
         MenuBuilder.make_menu_item(menu, _('Copy'), self._do_copy_cb)
         MenuBuilder.make_menu_item(menu, _('Paste'), self._do_paste_cb)
         MenuBuilder.make_menu_item(menu, _('Save stack'),
@@ -411,7 +411,7 @@ return %s(self)" % (p, P, P)
                                    self._do_delete_macro_cb)
         edit_menu = MenuBuilder.make_sub_menu(menu, _('Edit'))
 
-        menu = gtk.Menu()
+        menu = Gtk.Menu()
         MenuBuilder.make_menu_item(menu, _('Show palette'),
                                    self._do_palette_cb)
         MenuBuilder.make_menu_item(menu, _('Hide palette'),
@@ -420,7 +420,7 @@ return %s(self)" % (p, P, P)
                                    self._do_hideshow_cb)
         tool_menu = MenuBuilder.make_sub_menu(menu, _('Tools'))
 
-        menu = gtk.Menu()
+        menu = Gtk.Menu()
         MenuBuilder.make_menu_item(menu, _('Clean'), self._do_eraser_cb)
         MenuBuilder.make_menu_item(menu, _('Run'), self._do_run_cb)
         MenuBuilder.make_menu_item(menu, _('Step'), self._do_step_cb)
@@ -428,17 +428,17 @@ return %s(self)" % (p, P, P)
         MenuBuilder.make_menu_item(menu, _('Stop'), self._do_stop_cb)
         turtle_menu = MenuBuilder.make_sub_menu(menu, _('Turtle'))
 
-        menu = gtk.Menu()
+        menu = Gtk.Menu()
         self._custom_filepath = None
         MenuBuilder.make_menu_item(menu, _('Show challenges'),
                                    self._create_store)
         challenges_menu = MenuBuilder.make_sub_menu(menu, _('Challenges'))
 
-        menu = gtk.Menu()
+        menu = Gtk.Menu()
         MenuBuilder.make_menu_item(menu, _('About...'), self._do_about_cb)
         help_menu = MenuBuilder.make_sub_menu(menu, _('Help'))
 
-        menu_bar = gtk.MenuBar()
+        menu_bar = Gtk.MenuBar()
         menu_bar.append(activity_menu)
         menu_bar.append(edit_menu)
         menu_bar.append(view_menu)
@@ -468,13 +468,13 @@ return %s(self)" % (p, P, P)
         for plugin in self.tw.turtleart_plugins:
             if hasattr(plugin, 'quit'):
                 plugin.quit()
-        gtk.main_quit()
+        Gtk.main_quit()
         exit()
 
     def _show_save_dialog(self, new_project=True):
         ''' Dialog for save project '''
-        dlg = gtk.MessageDialog(parent=None, type=gtk.MESSAGE_INFO,
-                                buttons=gtk.BUTTONS_YES_NO,
+        dlg = Gtk.MessageDialog(parent=None, type=Gtk.MessageType.INFO,
+                                buttons=Gtk.ButtonsType.YES_NO,
                                 message_format=_('You have unsaved work. \
 Would you like to save before quitting?'))
         dlg.set_title(_('Save project?'))
@@ -482,7 +482,7 @@ Would you like to save before quitting?'))
 
         resp = dlg.run()
         dlg.destroy()
-        if resp == gtk.RESPONSE_YES:
+        if resp == Gtk.ResponseType.YES:
             if new_project:
                 self._save_as()
             else:
@@ -649,10 +649,10 @@ Would you like to save before quitting?'))
         self.tw.copying_blocks = False
         self.tw.deleting_blocks = False
         if self.tw.saving_blocks:
-            self.win.get_window().set_cursor(gtk.gdk.Cursor(gtk.gdk.LEFT_PTR))
+            self.win.get_window().set_cursor(Gdk.Cursor.new(Gdk.CursorType.LEFT_PTR))
             self.tw.saving_blocks = False
         else:
-            self.win.get_window().set_cursor(gtk.gdk.Cursor(gtk.gdk.HAND1))
+            self.win.get_window().set_cursor(Gdk.Cursor.new(Gdk.HAND1))
             self.tw.saving_blocks = True
 
     def _do_delete_macro_cb(self, widget):
@@ -660,10 +660,10 @@ Would you like to save before quitting?'))
         self.tw.copying_blocks = False
         self.tw.saving_blocks = False
         if self.tw.deleting_blocks:
-            self.win.get_window().set_cursor(gtk.gdk.Cursor(gtk.gdk.LEFT_PTR))
+            self.win.get_window().set_cursor(Gdk.Cursor.new(Gdk.CursorType.LEFT_PTR))
             self.tw.deleting_blocks = False
         else:
-            self.win.get_window().set_cursor(gtk.gdk.Cursor(gtk.gdk.HAND1))
+            self.win.get_window().set_cursor(Gdk.Cursor.new(Gdk.HAND1))
             self.tw.deleting_blocks = True
 
     def restore_state(self):
@@ -676,7 +676,7 @@ Would you like to save before quitting?'))
     def _draw_cartoon(self):
         pos = self.tw.turtles.get_active_turtle().get_xy()
         self.tw.turtles.get_active_turtle().set_xy(
-            int(-gtk.gdk.screen_width() / 2), 0, pendown=False)
+            int(-Gdk.Screen.width() / 2), 0, pendown=False)
         self.tw.lc.insert_image(center=False, resize=False,
                                 filepath=os.path.join(
                 self._get_execution_dir(), 'images', 'amazonas-tortuga.png'))
@@ -718,10 +718,10 @@ Would you like to save before quitting?'))
         self.tw.saving_blocks = False
         self.tw.deleting_blocks = False
         if self.tw.copying_blocks:
-            self.win.get_window().set_cursor(gtk.gdk.Cursor(gtk.gdk.LEFT_PTR))
+            self.win.get_window().set_cursor(Gdk.Cursor.new(Gdk.CursorType.LEFT_PTR))
             self.tw.copying_blocks = False
         else:
-            self.win.get_window().set_cursor(gtk.gdk.Cursor(gtk.gdk.HAND1))
+            self.win.get_window().set_cursor(Gdk.Cursor.new(Gdk.HAND1))
             self.tw.copying_blocks = True
 
     def _do_paste_cb(self, button):
@@ -729,8 +729,8 @@ Would you like to save before quitting?'))
         self.tw.copying_blocks = False
         self.tw.saving_blocks = False
         self.tw.deleting_blocks = False
-        self.win.get_window().set_cursor(gtk.gdk.Cursor(gtk.gdk.LEFT_PTR))
-        clipBoard = gtk.Clipboard()
+        self.win.get_window().set_cursor(Gdk.Cursor.new(Gdk.CursorType.LEFT_PTR))
+        clipBoard = Gtk.Clipboard()
         text = clipBoard.wait_for_text()
         if text is not None:
             if self.tw.selected_blk is not None and \
@@ -745,13 +745,13 @@ Would you like to save before quitting?'))
                 self.tw.paste_offset += 20
 
     def _do_about_cb(self, widget):
-        about = gtk.AboutDialog()
+        about = Gtk.AboutDialog()
         about.set_program_name(_(self.name))
         about.set_version(self.version)
         about.set_comments(_(self.summary))
         about.set_website(self.website)
         about.set_logo(
-            gtk.gdk.pixbuf_new_from_file(
+            GdkPixbuf.Pixbuf.new_from_file(
                 'activity/' + self.icon_name + '.svg'))
         about.run()
         about.destroy()
@@ -801,20 +801,20 @@ Would you like to save before quitting?'))
 
     def _create_store(self, widget=None):
         if self._challenge_window is None:
-            self._challenge_box = gtk.EventBox()
-            self._challenge_window = gtk.ScrolledWindow()
-            self._challenge_window.set_policy(gtk.POLICY_NEVER,
-                                              gtk.POLICY_AUTOMATIC)
-            width = gtk.gdk.screen_width() / 2
-            height = gtk.gdk.screen_height() / 2
+            self._challenge_box = Gtk.EventBox()
+            self._challenge_window = Gtk.ScrolledWindow()
+            self._challenge_window.set_policy(Gtk.PolicyType.NEVER,
+                                              Gtk.PolicyType.AUTOMATIC)
+            width = Gdk.Screen.width() / 2
+            height = Gdk.Screen.height() / 2
             self._challenge_window.set_size_request(width, height)
             self._challenge_window.show()
 
-            store = gtk.ListStore(gtk.gdk.Pixbuf, str)
+            store = Gtk.ListStore(GdkPixbuf.Pixbuf, str)
 
-            icon_view = gtk.IconView()
+            icon_view = Gtk.IconView()
             icon_view.set_model(store)
-            icon_view.set_selection_mode(gtk.SELECTION_SINGLE)
+            icon_view.set_selection_mode(Gtk.SelectionMode.SINGLE)
             icon_view.connect('selection-changed', self._challenge_selected,
                               store)
             icon_view.set_pixbuf_column(0)
@@ -823,8 +823,8 @@ Would you like to save before quitting?'))
             icon_view.show()
             self._fill_challenges_list(store)
 
-            width = gtk.gdk.screen_width() / 4
-            height = gtk.gdk.screen_height() / 4
+            width = Gdk.Screen.width() / 4
+            height = Gdk.Screen.height() / 4
 
             self._challenge_box.add(self._challenge_window)
             self.fixed.put(self._challenge_box, width, height)
@@ -878,7 +878,7 @@ Would you like to save before quitting?'))
         '''
         for filepath in self._scan_for_challenges():
             pixbuf = None
-            pixbuf = gtk.gdk.pixbuf_new_from_file_at_size(
+            pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_size(
                 filepath, 100, 100)
             store.append([pixbuf, filepath])
 

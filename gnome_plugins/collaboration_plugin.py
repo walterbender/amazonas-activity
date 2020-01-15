@@ -26,8 +26,8 @@ import os.path
 
 import dbus
 from gettext import gettext as _
-import gobject
-import gtk
+from gi.repository import GObject
+from gi.repository import Gtk
 
 from plugin import Plugin
 
@@ -51,9 +51,9 @@ CONNECTION_INTERFACE_ACTIVITY_PROPERTIES = \
 class Collaboration_plugin(Plugin):
 
     __gsignals__ = {
-        'joined': (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,
+        'joined': (GObject.SignalFlags.RUN_FIRST, None,
                    ()),
-        'shared': (gobject.SIGNAL_RUN_FIRST, gobject.TYPE_NONE,
+        'shared': (GObject.SignalFlags.RUN_FIRST, None,
                    ()), }
 
     def __init__(self, parent):
@@ -106,17 +106,17 @@ class Collaboration_plugin(Plugin):
         self._setup_config_file(self._parent.get_config_home())
 
     def get_menu(self):
-        menu = gtk.Menu()
+        menu = Gtk.Menu()
 
         MenuBuilder.make_menu_item(menu, _('Enable collaboration'),
                                    self._connect_cb)
 
-        self._activities_submenu = gtk.Menu()
+        self._activities_submenu = Gtk.Menu()
         activities_menu = MenuBuilder.make_sub_menu(self._activities_submenu,
                                                     _('Activities'))
         menu.append(activities_menu)
 
-        self._buddies_submenu = gtk.Menu()
+        self._buddies_submenu = Gtk.Menu()
         buddies_menu = MenuBuilder.make_sub_menu(self._buddies_submenu,
                                                  _('Buddies'))
         menu.append(buddies_menu)
